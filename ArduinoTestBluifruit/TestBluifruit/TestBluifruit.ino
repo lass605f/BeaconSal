@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <SPI.h>
+#include <Servo.h>
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
@@ -15,6 +16,8 @@
 #include <SoftwareSerial.h>
 #endif
 
+Servo myservo;
+
 /*=========================================================================
        -----------------------------------------------------------------------*/
 #define FACTORYRESET_ENABLE         0
@@ -22,6 +25,9 @@
 #define MODE_LED_BEHAVIOUR          "MODE"
 /*=========================================================================*/
 
+int greenled = 10;
+int redled = 6;
+int pos = 0;  //variable til servoens position
 
 Adafruit_BluefruitLE_SPI ble(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
 
@@ -37,6 +43,8 @@ void error(const __FlashStringHelper*err) {
   while (1);
 }
 
+char c;
+
 /**************************************************************************/
 /*!
     @brief  Sets up the HW an the BLE module (this function is called
@@ -45,6 +53,10 @@ void error(const __FlashStringHelper*err) {
 /**************************************************************************/
 void setup(void)
 {
+  pinMode(redled, OUTPUT);
+  pinMode(greenled, OUTPUT);
+  myservo.attach(9);  // attaches the servo on pin 9 to the servo object
+
   while (!Serial);  // required for Flora & Micro
   delay(500);
 
@@ -93,7 +105,7 @@ void setup(void)
   }
 
   //Give module a new name
-  ble.println("AT+GAPDEVNAME=Kasperishere"); // named TLONE
+  ble.println("AT+GAPDEVNAME=Beaconsal"); // named TLONE
 
   // Check response status
   ble.waitForOK();
@@ -108,6 +120,9 @@ void setup(void)
 
   Serial.println(F("******************************"));
 }
+
+
+
 
 /**************************************************************************/
 /*!
@@ -136,8 +151,60 @@ void loop(void)
   // Echo received data
   while ( ble.available() )
   {
-    int c = ble.read();
-    Serial.print((char)c);
+    int input = ble.read();
+    c = (char)input;
+    Serial.print(c);
   }
+    if (c == '1')
+    {
+
+    digitalWrite(greenled, HIGH);
+    delay(2000);
+    digitalWrite(greenled, LOW);
+
+    delay(2000);
+    myservo.write(180);
+
+    //myservo.write(0);
+    Serial.println();
+    Serial.println("Dør åben");
+    //exit(0);
+
+    delay(5000);
+
+    c = 0;
+
+    }
+
+     if (c != '1');
+     {
+
+
+
+    myservo.write(0);
+    Serial.println();
+      Serial.println("Ingen adgang");
+      digitalWrite(redled, HIGH);
+      delay(2000);
+      digitalWrite(redled, LOW);
+     }
+
+
+
+
+
+
+
+
+
+
+
+
   delay(1000);
+
+
+
+
+
+
 }
